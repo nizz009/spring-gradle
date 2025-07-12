@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.nizz.springgradle'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework:spring-core:3.0.5.RELEASE'
+    implementation 'org.springframework:spring-beans:3.0.5.RELEASE'
+    implementation 'org.springframework:spring-context:3.0.5.RELEASE'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}

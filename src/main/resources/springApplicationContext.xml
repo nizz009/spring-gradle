@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- XML namespace declarations help Spring to properly parse and validate XML so we can use tags like
+    <context:annotation-config>, etc. -->
+<!-- Mentioning init and destroy methods at global levels make Spring search for the methods in all the beans
+    If the methods do not exist, it simply does not try to execute them
+    NOTE: Bean-specific init-method or destroy-method override the default-init-method and default-destroy-method  -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                          http://www.springframework.org/schema/beans/spring-beans.xsd
+                          http://www.springframework.org/schema/context
+                          http://www.springframework.org/schema/context/spring-context.xsd"
+       default-init-method="customGlobalBeanInit"
+       default-destroy-method="customGlobalBeanDestroy">
+
+<!--    Using getters and setters   -->
+    <bean id="triangle" class="org.nizz.springgradle.Triangle" init-method="customInit" destroy-method="customDestroy">
+        <property name="type" value="Scalene" />
+        <property name="height" value="25" />
+    </bean>
+
+
+<!--    Using constructors   -->
+    <bean id="triangle-constructor" class="org.nizz.springgradle.Triangle">
+        <constructor-arg value="Isosceles" />
+        <constructor-arg value="20" />
+    </bean>
+
+
+<!--    Using type attribute : for distinguishing between multiple constructors since the value is always
+   passed as string in applicationContext xml   -->
+    <bean id="triangle-only-height-constructor" class="org.nizz.springgradle.Triangle">
+        <constructor-arg type="int" value="30" />
+    </bean>
+
+    <bean id="triangle-only-type-constructor" class="org.nizz.springgradle.Triangle">
+        <constructor-arg type="java.lang.String" value="30" />
+    </bean>
+
+<!--    Using index attribute : for detecting parameter position when they are mentioned in unordered/incorrect
+   order in the applicationContext   -->
+    <bean id="triangle-unordered-constructor" class="org.nizz.springgradle.Triangle">
+        <constructor-arg index="1" value="35" />
+        <constructor-arg index="0" value="Equilateral" />
+    </bean>
+
+<!--    Instantiating objects using constructor   -->
+    <bean id="triangle-object-constructor" class="org.nizz.springgradle.Triangle">
+        <constructor-arg type="org.nizz.springgradle.Point" ref="zeroPoint" />
+<!--        Can also use name attribute of a bean to reference it  -->
+        <constructor-arg type="org.nizz.springgradle.Point" ref="firstPoint" />
+        <constructor-arg type="org.nizz.springgradle.Point" ref="pointTwo" />
+    </bean>
+
+<!--    Instantiating objects using getters and setters   -->
+    <bean id="triangle-object-initializer" class="org.nizz.springgradle.Triangle">
+        <property name="p1" ref="zeroPoint" />
+        <property name="p2" ref="pointOne" />
+        <property name="p3">
+<!--        (Inner Beans) Since the following is not being re-used anywhere else :
+            the id attribute is optional in such cases   -->
+            <bean id="pointThree" class="org.nizz.springgradle.Point">
+                <constructor-arg value="10" />
+                <constructor-arg value="40" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="zeroPoint" class="org.nizz.springgradle.Point">
+        <constructor-arg value="0" />
+        <constructor-arg value="0" />
+    </bean>
+
+<!--    For scopes, check the notes in Main.java file  -->
+    <bean id="pointOne" class="org.nizz.springgradle.Point" name="firstPoint" scope="singleton">
+        <constructor-arg value="20" />
+        <constructor-arg value="0" />
+    </bean>
+
+    <bean id="pointTwo" class="org.nizz.springgradle.Point" name="secondPoint" scope="prototype">
+        <constructor-arg value="0" />
+        <constructor-arg value="25" />
+    </bean>
+
+<!--    Using alias : to refer to the object anywhere required using alias  -->
+    <alias name="triangle" alias="triangle-alias" />
+
+<!--    NOTE: There are three ways to reference a bean : id, name and alias
+        But the good practice is to use id since we get xml validation to ensure that no two beans
+        get the same id   -->
+
+<!--    NOTE: idref is used when we need the name of the bean
+        Example: for factory patterns, dynamic bean resolutions, etc.
+        <property name="p2">
+            <idref bean="pointOne" />
+        </property>  -->
+
+
+<!--    Instantiating collections (list, map, set, queue, dequeue) using getters and setters   -->
+    <bean id="triangle-collection-initializer" class="org.nizz.springgradle.Triangle">
+        <property name="angles">
+            <list>
+                <!--  Spring performs type conversion automatically - if the element type of collection are simple
+                (Integer, etc.), mentioning just value should suffice. Example: <value>60</value>  -->
+                <ref bean="right-angle" />
+                <bean class="org.nizz.springgradle.Angle">
+                    <property name="value" value="60" />
+                </bean>
+                <bean class="org.nizz.springgradle.Angle">
+                    <constructor-arg value="30" />
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="right-angle" class="org.nizz.springgradle.Angle">
+        <property name="value" value="90" />
+    </bean>
+
+<!--    Instantiating beans using Autowire   -->
+    <!--  Will search for the beans with the same name as that of the member variables (in case of byName)
+      Autowiring byType works if there is only one bean of each type
+      Autowiring by constructor pretty much does the same thing as that of autowiring byType - except that Spring
+      checks the constructors defined and then collects the beans of each type mentioned in the constructor - hence,
+      we must have only one bean of each type
+      NOTE: Not good for large applications since we will have to debug a lot from where the values were picked up -->
+    <bean id="triangle-autowired" class="org.nizz.springgradle.Triangle" autowire="byName">
+
+    </bean>
+
+    <bean id="p1" class="org.nizz.springgradle.Point">
+        <property name="x" value="43" />
+        <property name="y" value="30" />
+    </bean>
+
+    <bean id="p2" class="org.nizz.springgradle.Point">
+        <property name="x" value="87" />
+        <property name="y" value="56" />
+    </bean>
+
+    <bean id="p3" class="org.nizz.springgradle.Point">
+        <property name="x" value="34" />
+        <property name="y" value="90" />
+    </bean>
+
+
+<!--    Bean definition Inheritance   -->
+    <!-- If definition is mentioned as abstract, Spring does not create a bean out of it and only uses it while
+     inheriting properties -->
+    <bean id="triangle-parent-1" class="org.nizz.springgradle.Triangle" abstract="true">
+        <property name="p1" ref="zeroPoint" />
+        <property name="angles">
+            <list>
+                <ref bean="right-angle" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="triangle-parent-2" class="org.nizz.springgradle.Triangle" parent="triangle-parent-1">
+        <property name="p2" ref="pointOne" />
+        <property name="p3">
+            <bean class="org.nizz.springgradle.Point">
+                <property name="x" value="100" />
+                <property name="y" value="105" />
+            </bean>
+        </property>
+    </bean>
+
+    <!-- Overrides the value of p2 from parent definition -->
+    <bean id="triangle-point-inherited" class="org.nizz.springgradle.Triangle" parent="triangle-parent-2">
+        <property name="p2">
+            <bean class="org.nizz.springgradle.Point">
+                <property name="x" value="209" />
+                <property name="y" value="215" />
+            </bean>
+        </property>
+    </bean>
+
+    <!-- Adding to collections from parent bean definitions -->
+    <bean id="triangle-angle-inherited" class="org.nizz.springgradle.Triangle" parent="triangle-parent-1"
+          init-method="customInit" destroy-method="customDestroy">
+        <property name="angles">
+            <!-- If merge is not set as true, it overrides the list of parent definition -->
+            <list merge="true">
+                <bean class="org.nizz.springgradle.Angle">
+                    <property name="value" value="65" />
+                </bean>
+                <bean class="org.nizz.springgradle.Angle">
+                    <property name="value" value="35" />
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+<!--    Post Processor beans to let Spring know to check for the given post processors in the classes  -->
+    <bean class="org.nizz.springgradle.DisplayBeanNamePostProcessor" />
+    <bean class="org.nizz.springgradle.CustomBeanFactoryPostProcessor" />
+
+<!--    Property Placeholders   -->
+    <!--  Property placeholders are out-of-the-box Bean Factory Post Processor method : after the bean factory
+     is initialized, it searches for values of all the placeholders and replaces their variables with their
+     respective values so that the beans can then be initialized -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <!-- If we want to mention a classpath file location, the value="classpath:pointsconfig.properties"
+         This will make Spring search all class paths (all folders and JAR files) to find the required file
+         Example: <property name="locations" value="classpath:pointsconfig.properties" /> -->
+        <property name="locations" value="pointsconfig.properties" />
+    </bean>
+    <bean id="center" class="org.nizz.springgradle.Point">
+        <constructor-arg value="${CENTER.POINT_X}" />
+        <constructor-arg value="${CENTER.POINT_Y}" />
+    </bean>
+
+    <bean id="circle-shape" class="org.nizz.springgradle.Circle">
+        <property name="radius" value="25" />
+        <constructor-arg ref="circleCenter" />
+    </bean>
+
+<!--    <bean id="circle-xml-autowired" class="org.nizz.springgradle.Circle" autowire="byName">-->
+<!--        <property name="radius" value="45" />-->
+<!--    </bean>-->
+
+<!--    For Annotations   -->
+<!--    <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" />  -->
+<!--    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />  -->
+<!--    The following tag <context:annotation-config /> is a shortcut for the above two beans - all annotations tbh -->
+    <context:annotation-config />
+<!--    To scan the project to find components, etc. in the project package -->
+    <context:component-scan base-package="org.nizz.springgradle" />
+
+    <!-- For @Qualifier -->
+    <bean id="circleCenter" class="org.nizz.springgradle.Point">
+        <constructor-arg value="255" />
+        <constructor-arg value="345" />
+    </bean>
+
+<!--    Message Source (additional functionality provided by Application Context over Bean Factory)
+        This is provided by application context and hence is present in context.support package  -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <!-- List of all properties files which contain messages - no need to mention ".properties" extension:
+         Spring, by itself, will search for properties files with the given name -->
+        <property name="basenames">
+            <list>
+                <value>messages</value>
+                <value>circlemessages</value>
+            </list>
+        </property>
+    </bean>
+</beans>
